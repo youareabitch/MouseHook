@@ -20,10 +20,9 @@ namespace MouseHookTest
         bool isRightDown = false;
         Thread xThread;
         Thread yThread;
-        int x = 0;
-        int y = 0;
         List<Config> configs = new List<Config>();
         Config currentConfig;
+        int loadedConfigNo = 0;
         Point cursorData = CorsorExtension.GetCursorPosition();
 
         public Form1()
@@ -49,8 +48,8 @@ namespace MouseHookTest
             currentConfig = configs[0];
 
             //hard code test
-            configs[0].Xconfig.Add(new ConfigDetail() { Offset = -1, Rate = 4 });
-            configs[0].Xconfig.Add(new ConfigDetail() { Offset = 1, Rate = 5 });
+            configs[0].Xconfig.Add(new ConfigDetail() { Offset = 0, Rate = 15 });
+            configs[0].Xconfig.Add(new ConfigDetail() { Offset = 1, Rate = 15 });
             configs[0].Yconfig.Add(new ConfigDetail() { Offset = 2, Rate = 4 });
             configs[0].Yconfig.Add(new ConfigDetail() { Offset = 0, Rate = 5 });
         }
@@ -91,30 +90,18 @@ namespace MouseHookTest
             xThread = new Thread(() =>
             {
                 bool switchFlag = false;
-                x = 0;
-                int offset = 1;
                 while (isLeftDown && isRightDown)
                 {
                     cursorData = CorsorExtension.GetCursorPosition();
                     label1.InvokeIfRequired(() =>
                     {
-                        cursorData = CorsorExtension.GetCursorPosition();
-                        label1.Text = $"x:{cursorData.X} count:{x++}";
+                        label1.Text = $"x:{cursorData.X}";
                     });
 
-                    if (button1.Text == "Hard Code Mode")
-                    {
-                        Win32.SetCursorPos(cursorData.X + offset, cursorData.Y);
-                        offset = offset * -1;
-                        Thread.Sleep(20);
-                    }
-                    else
-                    {
-                        cursorData = CorsorExtension.GetCursorPosition();
-                        Win32.SetCursorPos(cursorData.X + currentConfig.Xconfig[Convert.ToInt32(switchFlag)].Offset, cursorData.Y);
-                        Thread.Sleep(currentConfig.Xconfig[Convert.ToInt32(switchFlag)].Rate);
-                        switchFlag = !switchFlag;
-                    }
+                    cursorData = CorsorExtension.GetCursorPosition();
+                    Win32.SetCursorPos(cursorData.X + currentConfig.Xconfig[Convert.ToInt32(switchFlag)].Offset, cursorData.Y);
+                    Thread.Sleep(currentConfig.Xconfig[Convert.ToInt32(switchFlag)].Rate);
+                    switchFlag = !switchFlag;
                 }
             });
             xThread.Start();
@@ -122,27 +109,17 @@ namespace MouseHookTest
             yThread = new Thread(() =>
             {
                 var switchFlag = false;
-                y = 0;
                 while (isLeftDown && isRightDown)
                 {
                     label2.InvokeIfRequired(() =>
                     {
-                        cursorData = CorsorExtension.GetCursorPosition();
-                        label2.Text = $"x:{cursorData.X} y:{cursorData.Y} count:{y++}";
+                        label2.Text = $"x:{cursorData.X} y:{cursorData.Y}";
                     });
 
-                    if (button1.Text == "Hard Code Mode")
-                    {
-                        Win32.SetCursorPos(cursorData.X, cursorData.Y + 2);
-                        Thread.Sleep(20);
-                    }
-                    else
-                    {
-                        cursorData = CorsorExtension.GetCursorPosition();
-                        Win32.SetCursorPos(cursorData.X, cursorData.Y + currentConfig.Yconfig[Convert.ToInt32(switchFlag)].Offset);
-                        Thread.Sleep(currentConfig.Yconfig[Convert.ToInt32(switchFlag)].Rate);
-                        switchFlag = !switchFlag;
-                    }
+                    cursorData = CorsorExtension.GetCursorPosition();
+                    Win32.SetCursorPos(cursorData.X, cursorData.Y + currentConfig.Yconfig[Convert.ToInt32(switchFlag)].Offset);
+                    Thread.Sleep(currentConfig.Yconfig[Convert.ToInt32(switchFlag)].Rate);
+                    switchFlag = !switchFlag;
                 }
             });
             yThread.Start();
@@ -161,18 +138,6 @@ namespace MouseHookTest
                 yThread.Abort();
             }
             yThread = null;
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            if (button1.Text == "Hard Code Mode")
-            {
-                button1.Text = "Config Mode";
-            }
-            else
-            {
-                button1.Text = "Hard Code Mode";
-            }
         }
     }
 
