@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,6 +25,7 @@ namespace MouseHookTest
         Config currentConfig;
         int loadedConfigNo = 0;
         Point cursorData = CorsorExtension.GetCursorPosition();
+        bool isOpne = true;
 
         public Form1()
         {
@@ -48,22 +50,23 @@ namespace MouseHookTest
             currentConfig = configs[0];
 
             //hard code test
-            configs[0].Xconfig.Add(new ConfigDetail() { Offset = 0, Rate = 15 });
-            configs[0].Xconfig.Add(new ConfigDetail() { Offset = 1, Rate = 15 });
-            configs[0].Yconfig.Add(new ConfigDetail() { Offset = 2, Rate = 4 });
+            configs[0].Xconfig.Add(new ConfigDetail() { Offset = -1, Rate = 4 });
+            configs[0].Xconfig.Add(new ConfigDetail() { Offset = 1, Rate = 5 });
+            configs[0].Yconfig.Add(new ConfigDetail() { Offset = 2, Rate = 5 });
             configs[0].Yconfig.Add(new ConfigDetail() { Offset = 0, Rate = 5 });
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-
+            button1.Text = isOpne.ToString();
         }
 
         private void LeftMouseDown(MSLLHOOKSTRUCT mouseStruct)
         {
             isLeftDown = true;
             ThreadClear();
-            ThreadInit();
+            if (isOpne)
+                ThreadInit();
         }
 
         private void LeftMouseUp(MSLLHOOKSTRUCT mouseStruct)
@@ -76,7 +79,8 @@ namespace MouseHookTest
         {
             isRightDown = true;
             ThreadClear();
-            ThreadInit();
+            if (isOpne)
+                ThreadInit();
         }
 
         private void RightMouseUp(MSLLHOOKSTRUCT mouseStruct)
@@ -99,7 +103,7 @@ namespace MouseHookTest
                     });
 
                     cursorData = CorsorExtension.GetCursorPosition();
-                    Win32.SetCursorPos(cursorData.X + currentConfig.Xconfig[Convert.ToInt32(switchFlag)].Offset, cursorData.Y);
+                    RelativeMove(currentConfig.Xconfig[Convert.ToInt32(switchFlag)].Offset, 0);
                     Thread.Sleep(currentConfig.Xconfig[Convert.ToInt32(switchFlag)].Rate);
                     switchFlag = !switchFlag;
                 }
@@ -117,7 +121,7 @@ namespace MouseHookTest
                     });
 
                     cursorData = CorsorExtension.GetCursorPosition();
-                    Win32.SetCursorPos(cursorData.X, cursorData.Y + currentConfig.Yconfig[Convert.ToInt32(switchFlag)].Offset);
+                    RelativeMove(0, currentConfig.Yconfig[Convert.ToInt32(switchFlag)].Offset);
                     Thread.Sleep(currentConfig.Yconfig[Convert.ToInt32(switchFlag)].Rate);
                     switchFlag = !switchFlag;
                 }
@@ -138,6 +142,19 @@ namespace MouseHookTest
                 yThread.Abort();
             }
             yThread = null;
+        }
+
+        [DllImport("user32.dll")]
+        static extern void mouse_event(int dwFlags, int dx, int dy, int dwData, int dwExtraInfo);
+        public static void RelativeMove(int relx, int rely)
+        {
+            mouse_event(0x0001, relx, rely, 0, 0);
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            isOpne = !isOpne;
+            button1.Text = isOpne.ToString();
         }
     }
 
