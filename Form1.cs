@@ -93,8 +93,7 @@ namespace MouseHookTest
         {
             xThread = new Thread(() =>
             {
-                bool switchFlag = false;
-                while (isLeftDown && isRightDown)
+                if (isLeftDown && isRightDown)
                 {
                     cursorData = CorsorExtension.GetCursorPosition();
                     label1.InvokeIfRequired(() =>
@@ -103,30 +102,10 @@ namespace MouseHookTest
                     });
 
                     cursorData = CorsorExtension.GetCursorPosition();
-                    RelativeMove(currentConfig.Xconfig[Convert.ToInt32(switchFlag)].Offset, 0);
-                    Thread.Sleep(currentConfig.Xconfig[Convert.ToInt32(switchFlag)].Rate);
-                    switchFlag = !switchFlag;
+                    RelativeMove(0, 10);
                 }
             });
             xThread.Start();
-
-            yThread = new Thread(() =>
-            {
-                var switchFlag = false;
-                while (isLeftDown && isRightDown)
-                {
-                    label2.InvokeIfRequired(() =>
-                    {
-                        label2.Text = $"x:{cursorData.X} y:{cursorData.Y}";
-                    });
-
-                    cursorData = CorsorExtension.GetCursorPosition();
-                    RelativeMove(0, currentConfig.Yconfig[Convert.ToInt32(switchFlag)].Offset);
-                    Thread.Sleep(currentConfig.Yconfig[Convert.ToInt32(switchFlag)].Rate);
-                    switchFlag = !switchFlag;
-                }
-            });
-            yThread.Start();
         }
 
         private void ThreadClear()
@@ -136,12 +115,6 @@ namespace MouseHookTest
                 xThread.Abort();
             }
             xThread = null;
-
-            if (yThread != null)
-            {
-                yThread.Abort();
-            }
-            yThread = null;
         }
 
         [DllImport("user32.dll")]
